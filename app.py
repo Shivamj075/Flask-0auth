@@ -1,10 +1,13 @@
 import os, json
 
-from flask import Flask, session, redirect, render_template, request, jsonify, flash
+from flask import Flask, session, redirect, render_template, request, jsonify, flash, url_for
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
+from flask_dance.contrib.github import make_github_blueprint, github
+# from flask_dance.consumer.backend.sqla import OAuthConsumerMixin, SQLAlchemyBackend
+from flask_dance.consumer import oauth_authorized
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import requests
@@ -31,11 +34,33 @@ engine = create_engine(os.getenv("DATABASE_URL"))
 # database are kept separate
 db = scoped_session(sessionmaker(bind=engine))
 
+github_blueprint = make_github_blueprint(client_id='272ae4c6200eb46e5df2', client_secret='91f0a0feee8cf1d43563d164f5997c57cb7e6023')
+
+
+app.register_blueprint(github_blueprint, url_prefix='/github_login')
+
+# db = SQLAlchemy(app)
+# login_manager = LoginManager(app)
+
 @app.route("/")
 def index():
     """ Show search box """
 
     return render_template("index.html")
+
+@app.route("/github")
+def github_login():
+    if not github.authorized:
+        return redirect(url_for('github.login'))
+
+    account_info = github.get('/user')
+
+    if account_info.ok:
+        account_info_json = account_info.json()
+
+        return '<h1>Your Github name is {}'.format(account_info_json['login'])
+
+    return '<h1>Request failed!</h1>'
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -143,3 +168,4 @@ def Register():
     # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("register.html")
+
