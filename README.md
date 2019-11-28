@@ -1,2 +1,2 @@
 # Flask-0auth
-Implements basic OAuth support for Flask using Flask Dance
+Implements basic 0Auth support for Flask using Flask Dance.
