@@ -34,11 +34,10 @@ engine = create_engine(os.getenv("DATABASE_URL"))
 # database are kept separate
 db = scoped_session(sessionmaker(bind=engine))
 
-github_blueprint = make_github_blueprint(client_id='272ae4c6200eb46e5df2', client_secret='91f0a0feee8cf1d43563d164f5997c57cb7e6023')
+github_blueprint = make_github_blueprint(client_id='272ae4c6200eb46e5df2', client_secret='31eb790efc21a79b3fc7c892c46feaa997762a22')
 
 
 app.register_blueprint(github_blueprint, url_prefix='/github_login')
-
 # db = SQLAlchemy(app)
 # login_manager = LoginManager(app)
 
@@ -48,7 +47,7 @@ def index():
 
     return render_template("index.html")
 
-@app.route("/github")
+@app.route('/github')
 def github_login():
     if not github.authorized:
         return redirect(url_for('github.login'))
@@ -62,48 +61,48 @@ def github_login():
 
     return '<h1>Request failed!</h1>'
 
-@app.route("/login", methods=["GET", "POST"])
+
+@app.route("/login",methods=["GET","POST"])
 def login():
-    """ Log user in """
 
-    # Forget any user_id
-    session.clear()
+  # Forget any user_id
+  session.clear()
 
-    username = request.form.get("username")
+  username = request.form.get("username")
 
-    # User reached route via POST (as by submitting a form via POST)
-    if request.method == "POST":
+  # User reached route via POST(as by submitting a form via POST)
+  if request.method=="POST":
 
-        # Ensure username was submitted
-        if not request.form.get("username"):
-            return render_template("error.html", message="must provide username")
-
-        # Ensure password was submitted
-        elif not request.form.get("password"):
-            return render_template("error.html", message="must provide password")
-
-        # Query database for username (http://zetcode.com/db/sqlalchemy/rawsql/)
-        # https://docs.sqlalchemy.org/en/latest/core/connections.html#sqlalchemy.engine.ResultProxy
-        rows = db.execute("SELECT * FROM users WHERE username = :username",
-                            {"username": username})
+      #Ensure username was submiitted
+      if not request.form.get("username"):
+          return render_template("error.html",message="must provide username")
         
-        result = rows.fetchone()
+      # Ensure password was submitted
+      elif not request.form.get("password"):
+          return render_template("error.html",message="must provide password")
 
-        # Ensure username exists and password is correct
-        if result == None or not check_password_hash(result[2], request.form.get("password")):
-            return render_template("error.html", message="invalid username and/or password")
+      #Query database for username(https://zetcode.com/db/sqlalchemy/rawsql/)
+      # https://docs.sqlalchemy.org/en/latest/core/connections.html#sqlalchemy.engine.ResultProxy
+        
+      rows = db.execute("SELECT * FROM users WHERE username=:username",{"username": username})
 
-        # Remember which user has logged in
-        session["user_id"] = result[0]
-        session["user_name"] = result[1]
+      result = rows.fetchone()
 
-        # Redirect user to home page
-        flash("Thank You!!")
-        return redirect("/")
+      # Ensure username exists and password is correct
+      if(result==None or not check_password_hash(result[2],request.form.get("password"))):
+          return render_template("error.html",message="invalid username and/or password")
 
-    # User reached route via GET (as by clicking a link or via redirect)
-    else:
-        return render_template("index.html")
+      # Remember which user has logged in
+      session["user_id"] = result[0]
+      session["user_name"] = result[1]
+
+      # Redirect user to home page
+      flash('Logged In','username')
+      return render_template("error.html",message="Successfully Logged In!!")
+
+  # User reached route via GET (as by clicking a link or via redirec)
+  else:
+      return render_template("index.html")
 
 @app.route("/logout")
 def logout():
